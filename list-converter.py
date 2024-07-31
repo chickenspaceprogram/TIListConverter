@@ -45,11 +45,15 @@ class Data():
     def __init__(self, name_on_calc: str, filename: str, is_complex: bool, is_archived: bool):
         self.raw_data: list = self.__import_data(filename)
         self.get_tupled_data(is_complex)
+        self.combine_tupled_data()
         self.variable_data_length: list[int] = unpack_word(len(self.tupled_data) * 9)
         self.start = [0x0d, 0x00]
         self.get_type_ID()
-
-
+        self.get_var_name(name_on_calc)
+        self.version = [0x00]
+        self.set_flag()
+        self.formatted_data = self.start + self.variable_data_length + self.type_ID + self.var_name + self.version + self.flag + self.variable_data_length + self.var_data
+    
     def __import_data(self, filename: str) -> list:
         imported_data: list = []
         with open(filename, 'r') as imported_file:
@@ -87,6 +91,14 @@ class Data():
         '''
         self.tupled_data: list[tuple[int, int, int]] = [self.format_num(decimal.Decimal(i), is_complex) for i in self.raw_data]
     
+    def combine_tupled_data(self):
+        self.var_data: list = []
+        for flag, exponent, coefficient in self.tupled_data:
+            self.var_data.append(flag)
+            self.var_data.append(exponent)
+            for byte_index in range(0, 14, 2):
+                self.data.append(str(coefficient)[byte_index:byte_index + 2])
+    
     def get_type_ID(self, is_complex):
         if is_complex:
             self.type_ID: list[int] = [0x0d]
@@ -94,6 +106,20 @@ class Data():
             self.type_ID: list[int] = [0x01]
     
     def get_var_name(self, var_name: str):
+        var_name = var_name.upper()
+        if len(var_name) > 5:
+            raise SyntaxError(f"List name '{var_name}' was too long, maximum is 5 characters.")
+        if not(var_name.isalnum()):
+            raise SyntaxError(f"List name '{var_name}' contained non-alphanumeric characters.")
+        if not(var_name.isalpha()):
+            raise SyntaxError(f"The first character in list name '{var_name}' is not alphabetic.")
+        self.var_name = convert_ASCII(var_name)
+    
+    def set_flag(self, is_archived):
+        if is_archived:
+            self.flag = [0x80]
+        else:
+            self.flag = [0x00]
 
 
 name_on_calc: str = "ALIST"
