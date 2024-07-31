@@ -136,37 +136,6 @@ data = Data(name_on_calc, filename, is_complex, is_archived)
 header = Header(len(data.formatted_data), "Made by chickenspaceprogram's ConverTI app", data.formatted_data)
 
 file: bytes = bytes(header.header + data.formatted_data + header.checksum)
-print("\nHeader:\n")
-[print(hex(i)[2:], end=' ') for i in header.sig_1]
-print()
-[print(hex(i)[2:], end=' ') for i in header.sig_2]
-print()
-[print(hex(i)[2:], end=' ') for i in header.comment]
-print()
-[print(hex(i)[2:], end=' ') for i in header.data_length]
-print()
-print("\nData:\n")
-[print(hex(i)[2:], end=' ') for i in data.start]
-print()
-[print(hex(i)[2:], end=' ') for i in data.variable_data_length]
-print()
-[print(hex(i)[2:], end=' ') for i in data.type_ID]
-print()
-[print(hex(i)[2:], end=' ') for i in data.var_name]
-print()
-[print(hex(i)[2:], end=' ') for i in data.version]
-print()
-[print(hex(i)[2:], end=' ') for i in data.flag]
-print()
-[print(hex(i)[2:], end=' ') for i in data.variable_data_length]
-print()
-[print(hex(i)[2:], end=' ') for i in data.list_length]
-print()
-[print(hex(i)[2:], end=' ') for i in data.var_data]
-print()
-print('\nChecksum:\n')
-[print(hex(i)[2:], end=' ') for i in header.checksum]
-print()
 
 with open(f"{name_on_calc.upper()}.8xl", 'wb') as binaryfile:
     binaryfile.write(file)
