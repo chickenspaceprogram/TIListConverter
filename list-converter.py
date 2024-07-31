@@ -44,11 +44,11 @@ class Header():
 
 class Data():
     def __init__(self, name_on_calc: str, filename: str, is_complex: bool, is_archived: bool):
-        self.raw_data: list = self.__import_data(filename)
+        self.raw_data: list = self.__import_data(filename, is_complex)
         self.__get_tupled_data(is_complex)
         self.__combine_tupled_data()
         self.variable_data_length: list[int] = unpack_word(len(self.tupled_data) * 9 + 2)
-        self.list_length: list[int] = unpack_word(len(self.tupled_data))
+        self.list_length: list[int] = unpack_word(len(self.tupled_data) // (is_complex + 1))
         self.start = [0x0d, 0x00]
         self.__get_type_ID(is_complex)
         self.__get_var_name(']' + name_on_calc)
@@ -56,7 +56,7 @@ class Data():
         self.__set_flag(is_archived)
         self.formatted_data: list = self.start + self.variable_data_length + self.type_ID + self.var_name + self.version + self.flag + self.variable_data_length + self.list_length + self.var_data
 
-    def __import_data(self, filename: str) -> list:
+    def __import_data(self, filename: str, is_complex) -> list:
         imported_data: list = []
         with open(filename, 'r') as imported_file:
             csv_reader = csv.reader(imported_file)
@@ -65,6 +65,8 @@ class Data():
         
         if len(imported_data) != 1:
             raise Exception("Multiple rows provided in CSV, can only process one row.")
+        if ((len(imported_data[0]) % 2 != 0) and is_complex):
+            raise Exception("Complex list did not have matching real/imag pairs.")
         
         return imported_data[0]
     
@@ -77,14 +79,11 @@ class Data():
         coefficient *= decimal.Decimal(10 ** 13)
         coefficient = int(round(coefficient))
         if is_complex:
-            flagstr: str = '0110000'
+            flag: int = 0x0c
         else:
-            flagstr: str = '0000000'
+            flag: int= 0x00
         if coefficient < 0:
-            flagstr += '1'
-        else:
-            flagstr += '0'
-        flag: int = int(flagstr, 2)
+            flag += 0x80
         return (flag, exponent + 0x80, abs(coefficient))
     
     def __get_tupled_data(self, is_complex: bool):
@@ -127,7 +126,7 @@ class Data():
 
 name_on_calc: str = "ALIST"
 filename: str = "example.csv"
-is_complex: bool = False
+is_complex: bool = True
 is_archived: bool = False
 # input the list as just a list of real numbers, if is_complex is True they will be paired automatically
 # yes this is jank, no i will not fix it
