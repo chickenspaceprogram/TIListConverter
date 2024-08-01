@@ -74,7 +74,10 @@ class Data():
         '''
         Takes a decimal as input and returns a tuple containing the flag byte, the exponent, and the coefficient, all as integers.
         '''
-        exponent: int = math.floor(decimal.Decimal(abs(number).log10()))
+        if number == decimal.Decimal('0'):
+            exponent = 0
+        else:
+            exponent: int = math.floor(decimal.Decimal(abs(number).log10()))
         coefficient: decimal.Decimal = number / decimal.Decimal(10 ** exponent)
         coefficient *= decimal.Decimal(10 ** 13)
         coefficient = int(round(coefficient))
@@ -98,7 +101,10 @@ class Data():
             self.var_data.append(flag)
             self.var_data.append(exponent)
             for byte_index in range(0, 14, 2):
-                self.var_data.append(int(str(coefficient)[byte_index:byte_index + 2], 16))
+                if coefficient == 0:
+                    self.var_data.append(0)
+                else:
+                    self.var_data.append(int(str(coefficient)[byte_index:byte_index + 2], 16))
     
     def __get_type_ID(self, is_complex):
         if is_complex:
@@ -124,8 +130,8 @@ class Data():
             self.flag = [0x00]
 
 
-name_on_calc: str = "ALIST"
-filename: str = "example.csv"
+name_on_calc: str = "DICT5"
+filename: str = "list5.csv"
 is_complex: bool = True
 is_archived: bool = False
 # input the list as just a list of real numbers, if is_complex is True they will be paired automatically
