@@ -6,7 +6,7 @@ import math
 
 def unpack_word(word: int) -> list[int]:
     if len(hex(word)) > 6:
-        raise Exception(f"The data inputted {(word)} was too large to be stored as a word.")
+        raise Exception(f"The data inputted ({word}) was too large to be stored as a word.")
     
     nibble_list: list[str] = [i for i in hex(word)[2:]]
     nibble_list = ['0'] * (4 - len(nibble_list)) + nibble_list
@@ -40,7 +40,7 @@ class Header():
         self.sig_2: list = [0x1a, 0x0a, 0x00]
     
     def __get_checksum(self, data_section):
-        self.checksum: list = unpack_word(sum(data_section))
+        self.checksum: list = unpack_word(sum(data_section) & 0xFFFF) # genius way to get last 16 bytes
 
 class Data():
     def __init__(self, name_on_calc: str, filename: str, is_complex: bool, is_archived: bool):
@@ -112,7 +112,7 @@ class Data():
             raise SyntaxError(f"List name '{var_name[1:]}' was too long, maximum is 5 characters.")
         if not(var_name[1:].isalnum()):
             raise SyntaxError(f"List name '{var_name[1:]}' contained non-alphanumeric characters.")
-        if not(var_name[1:].isalpha()):
+        if not(var_name[1].isalpha()):
             raise SyntaxError(f"The first character in list name '{var_name[1:]}' is not alphabetic.")
         self.var_name = convert_ASCII(var_name)
         self.var_name += [0] * (8 - len(self.var_name))
